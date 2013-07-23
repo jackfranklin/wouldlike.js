@@ -1,13 +1,27 @@
 (function() {
 
-  var wouldLike = function(thing) {
-    loadThing(thing);
+  var wouldLike = function(thing, relative) {
+    if(!(thing instanceof Array)) {
+      thing = [thing];
+    }
+    relative = !!relative;
+    thing.forEach(function(item) {
+      console.log(wouldLike.loaded, wouldLike.loaded.indexOf(item));
+      if(wouldLike.loaded.indexOf(item) == -1 && wouldLike.inProgress.indexOf(item) == -1) {
+        wouldLike.inProgress.push(item);
+        relative ? wouldLike._loadInternal(item): wouldLike._loadExternal(item);
+      }
+    });
     return {
       then: function(fn) {
-        wouldLike.whenLoaded([thing], fn);
+        wouldLike.whenLoaded(thing, fn);
       }
     };
   };
+
+  wouldLike.relative = function(thing) {
+    return wouldLike(thing, true);
+  }
 
   wouldLike.whenLoaded = function(things, fn, tries) {
     var tries = tries || 0;
@@ -22,6 +36,7 @@
     } else {
       if(tries == 50) {
         console.log("wouldLike Timeout: Tried but couldn't resolve", things);
+        return;
       } else {
         setTimeout(function() {
           wouldLike.whenLoaded(things, fn, ++tries);
@@ -34,23 +49,38 @@
   wouldLike.config = {};
   wouldLike.repository = {};
   wouldLike.loaded = [];
+  wouldLike.inProgress = [];
+  wouldLike._whenDoneCb = function(thing) {
+    console.log("wouldLike:", thing, "loaded");
+    wouldLike.loaded.push(thing);
+    var newInProgress = [];
+    wouldLike.inProgress.forEach(function(item) {
+      if(item !== thing) {
+        newInProgress.push(item);
+      }
+    });
+    wouldLike.inProgress = newInProgress;
+  };
 
-  var loadThing = function(thing) {
+
+  wouldLike._loadExternal = function(searchTerm) {
+    if(wouldLike.loaded.indexOf(searchTerm) > -1) return;
     if(!wouldLike.ready) {
       setTimeout(function() {
-        loadThing.call(wouldLike, thing);
+        wouldLike._loadExternal.call(wouldLike, searchTerm);
       }, 10);
       return;
     }
-    if(wouldLike.loaded.indexOf(thing) > -1) return;
-    var file = searchCdnJs(thing);
-    loadJsFile(file, function() {
-      console.log("wouldLike:", thing, "loaded");
-      wouldLike.loaded.push(thing);
-    });
-  }
+    var fullFilePath = wouldLike._searchCdnJs(searchTerm);
+    wouldLike._loadJsFile(fullFilePath, searchTerm, wouldLike._whenDoneCb);
+  };
 
-  var loadCdnJs = function() {
+  wouldLike._loadInternal = function(file) {
+    // file path is the name for internal
+    wouldLike._loadJsFile(file, file, wouldLike._whenDoneCb);
+  };
+
+  wouldLike._loadCdnJs = function() {
     //TODO: make this IE compliant
     var req = new XMLHttpRequest();
     req.open("GET", "http://rawgithub.com/cdnjs/website/gh-pages/packages.json", true);
@@ -65,10 +95,10 @@
     req.send(null);
   };
 
-  var searchCdnJs = function(term) {
+  wouldLike._searchCdnJs = function(term) {
     if(!wouldLike.ready) {
       setTimeout(function() {
-        searchCdnJs(term);
+        wouldLike._searchCdnJs(term);
       }, 10);
       return;
     }
@@ -85,7 +115,7 @@
     return found;
   };
 
-  var loadJsFile = function(file, callback) {
+  wouldLike._loadJsFile = function(file, name) {
     var script = document.getElementsByTagName('script')[0],
     newjs = document.createElement('script');
 
@@ -93,12 +123,12 @@
     newjs.onreadystatechange = function () {
       if (newjs.readyState === 'loaded' || newjs.readyState === 'complete') {
         newjs.onreadystatechange = null;
-        callback();
+        wouldLike._whenDoneCb(name);
       }
     };
     // others
     newjs.onload = function () {
-      callback();
+      wouldLike._whenDoneCb(name);
     };
     newjs.src = file;
     script.parentNode.insertBefore(newjs, script);
@@ -108,6 +138,6 @@
 
   // kick it off
   window.wouldLike = wouldLike;
-  loadCdnJs();
+  wouldLike._loadCdnJs();
 
 })();

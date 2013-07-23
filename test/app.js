@@ -11,3 +11,11 @@ wouldLike('underscore.js').then(function() {
 wouldLike.whenLoaded(['jquery', 'underscore.js'], function() {
   console.log("both loaded");
 });
+
+wouldLike.relative('foo.js').then(function() {
+  console.log("I loaded foo");
+});
+
+wouldLike.relative(['foo.js', 'bar.js']).then(function() {
+  console.log("loaded foo and bar");
+});

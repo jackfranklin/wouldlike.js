@@ -1,8 +1,6 @@
 # wouldLike.js
 
-_note: this is the result of a 45 minute hack and nothing more - more tidying and refactoring to come_
-
-For rapidly prototyping without downloading libraries getting in your way.
+For rapidly prototyping without downloading libraries getting in your way. Inspired by the ease of use supplied by Ruby's `require` and `require_relative`.
 
 ## How?
 
@@ -12,7 +10,7 @@ It takes what you give it and searches [cdnjs](http://cdnjs.com/) for it, before
 
 This means you can do this:
 
-```
+```js
 wouldLike('jquery').then(function() {
   console.log('jQuery is loaded');
 });
@@ -24,9 +22,24 @@ wouldLike('zepto.js');
 wouldLike.whenLoaded(['underscore.js', 'backbone.js', 'zepto.js'], function() {
   console.log("all of the above are loaded!");
 });
+
+wouldLike.relative('foo.js').then(function() {
+  console.log("I loaded foo");
+});
+// for relative, either use the above or pass true as second arg to wouldLike
+wouldLike('foo.js', true).then(function() {
+  console.log("I loaded foo");
+});
+
+// you can pass in an array too
+wouldLike.relative(['foo.js', 'bar.js']).then(function() {
+  console.log("loaded foo and bar");
+});
 ```
 
 Without _ever_ having to go and download jQuery / Underscore / Backbone / Zepto yourself.
+
+wouldLike also knows what it's downloaded or is in the progress of downloading, so it wont download things more than once.
 
 ## But that's like RequireJs / Bower / whatever!
 Maybe - but this is designed to allow you to quickly try something out, or quickly grab jQuery to test a thing and reduce the friction of hacking. It's not meant to be AMD compliant, or be used on production, or for any complex app (yet ;D).
