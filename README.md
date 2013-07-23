@@ -1,5 +1,7 @@
 # wouldLike.js
 
+_note: this is the result of a 45 minute hack and nothing more - more tidying and refactoring to come_
+
 For rapidly prototyping without downloading libraries getting in your way.
 
 ## How?
