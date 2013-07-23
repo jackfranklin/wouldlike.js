@@ -4,19 +4,54 @@
     loadThing(thing);
     return {
       then: function(fn) {
-        wouldLike.whenLoaded(thing, fn);
+        wouldLike.whenLoaded([thing], fn);
       }
     };
   };
 
+  wouldLike.whenLoaded = function(things, fn, tries) {
+    var tries = tries || 0;
+    var thingsHas = [];
+    things.forEach(function(thing) {
+      if(wouldLike.loaded.indexOf(thing) > -1) {
+        thingsHas.push(thing);
+      }
+    });
+    if(thingsHas.length == things.length) {
+      fn();
+    } else {
+      if(tries == 50) {
+        console.log("wouldLike Timeout: Tried but couldn't resolve", things);
+      } else {
+        setTimeout(function() {
+          wouldLike.whenLoaded(things, fn, ++tries);
+        }, 50);
+      }
+    }
+  };
+
   wouldLike.ready = false;
   wouldLike.config = {};
-  wouldLike.config.wouldLikeFile = "wouldLikefile.js";
-  wouldLike.config.wouldLikeSource = undefined;
-
   wouldLike.repository = {};
+  wouldLike.loaded = [];
+
+  var loadThing = function(thing) {
+    if(!wouldLike.ready) {
+      setTimeout(function() {
+        loadThing.call(wouldLike, thing);
+      }, 10);
+      return;
+    }
+    if(wouldLike.loaded.indexOf(thing) > -1) return;
+    var file = searchCdnJs(thing);
+    loadJsFile(file, function() {
+      console.log("wouldLike:", thing, "loaded");
+      wouldLike.loaded.push(thing);
+    });
+  }
 
   var loadCdnJs = function() {
+    //TODO: make this IE compliant
     var req = new XMLHttpRequest();
     req.open("GET", "http://rawgithub.com/cdnjs/website/gh-pages/packages.json", true);
     req.onload = function(data) {
@@ -40,11 +75,13 @@
     var baseUrl = "//cdnjs.cloudflare.com/ajax/libs/";
 
     var found = false;
+    //TODO: change this to a regular for() loop so we can break once thing is found
     wouldLike.repository.packages.forEach(function(item) {
       if(item.name.toLowerCase() == term.toLowerCase()) {
         found = baseUrl + [item.name, item.assets[0].version, item.filename].join("/")
       }
     });
+    //TODO: handle nothing being found
     return found;
   };
 
@@ -66,34 +103,11 @@
     newjs.src = file;
     script.parentNode.insertBefore(newjs, script);
   };
-  loadCdnJs();
 
-  wouldLike.whenLoaded = function(thing, fn) {
-    if(wouldLike.loaded.indexOf(thing) > -1) {
-      fn();
-    } else {
-      setTimeout(function() {
-        wouldLike.whenLoaded(thing, fn);
-      }, 10);
-    }
-  };
-  wouldLike.loaded = [];
 
-  var loadThing = function(thing) {
-    if(!wouldLike.ready) {
-      setTimeout(function() {
-        loadThing.call(wouldLike, thing);
-      }, 10);
-      return;
-    }
-    if(wouldLike.loaded.indexOf(thing) > -1) return;
-    var file = searchCdnJs(thing);
-    loadJsFile(file, function() {
-      console.log("wouldLike:", thing, "loaded");
-      wouldLike.loaded.push(thing);
-    });
-  }
 
+  // kick it off
   window.wouldLike = wouldLike;
+  loadCdnJs();
 
 })();
