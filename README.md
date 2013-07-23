@@ -1,5 +1,7 @@
 # wouldLike.js
 
+__A dead simple dependency manager for the browser.__
+
 For rapidly prototyping without downloading libraries getting in your way. Inspired by the ease of use supplied by Ruby's `require` and `require_relative`.
 
 ## How?
