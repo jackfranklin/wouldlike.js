@@ -20,3 +20,6 @@ Without _ever_ having to go and download jQuery yourself.
 
 ## But that's like RequireJs / Bower / whatever!
 Maybe - but this is designed to allow you to quickly try something out, or quickly grab jQuery to test a thing and reduce the friction of hacking. It's not meant to be AMD compliant, or be used on production, or for any complex app (yet ;D).
+
+## Browser Support
+Only currently tested in Chrome 28. Further tests to come.
