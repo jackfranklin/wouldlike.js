@@ -21,7 +21,7 @@ wouldLike('underscore.js');
 wouldLike('backbone.js');
 wouldLike('zepto.js');
 
-wouldLike.whenLoaded(['underscore.js', 'backbone.js', 'zepto.js], function() {
+wouldLike.whenLoaded(['underscore.js', 'backbone.js', 'zepto.js'], function() {
   console.log("all of the above are loaded!");
 });
 ```
